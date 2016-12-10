@@ -28,39 +28,39 @@ P即为Presenter，是主持层，负责在Model和View之间，从Model里取�
 Google官方分别写了View和Presenter的基本接口：  
 ```
 public interface BaseView<T> {  
-      void setPresenter(T presenter);
+    void setPresenter(T presenter);
 }
 ```
 ```
 public interface BasePresenter {  
-      void start();
+    void start();
 }
 ```  
 用一个Contract接口将View和Presenter组合在一起：  
 ```
 public interface AddEditTaskContract {  
 
-      interface View extends BaseView<Presenter> {
+    interface View extends BaseView<Presenter> {
 
-          void showEmptyTaskError();
+        void showEmptyTaskError();
 
-          void showTasksList();
+        void showTasksList();
 
-          void setTitle(String title);
+        void setTitle(String title);
 
-          void setDescription(String description);
+        void setDescription(String description);
 
-          boolean isActive();
-      }
+        boolean isActive();
+    }
 
-      interface Presenter extends BasePresenter {
+    interface Presenter extends BasePresenter {
 
-          void saveTask(String title, String description);
+        void saveTask(String title, String description);
 
-          void populateTask();
+        void populateTask();
 
-          boolean isDataMissing();
-      }
+        boolean isDataMissing();
+    }
 }
 ```  
 将Activity和Fragment当做View来对待，并且把Activity作为容器，让Fragment去实现View接口并且持有Presenter的引用：  
@@ -106,29 +106,29 @@ public class TasksRepository implements TasksDataSource {
  ```
  public interface Model<T extends Request, R> {
 
-          void call(T request, Callback<T, R> callback);
+     void call(T request, Callback<T, R> callback);
 
-          void cancelAll();
+     void cancelAll();
  }
  ```
  ```
  public interface Callback<T extends Request, R> {
 
-          void onStart(T request);
+     void onStart(T request);
 
-          void onSuccess(T request, R data);
+     void onSuccess(T request, R data);
 
-          void onError(T request, Throwable t);
+     void onError(T request, Throwable t);
 
-          void onCancel(T request);
+     void onCancel(T request);
  }
  ```
  ```
  public interface Call {
 
-          void execute();
+     void execute();
 
-          void cancel();
+     void cancel();
  }
  ```
  2. V的实现方式  
@@ -142,11 +142,11 @@ public class TasksRepository implements TasksDataSource {
  ```
  public abstract class BasePresenter<T extends BaseView> {
 
-         protected final T mView;
+     protected final T mView;
 
-         protected BasePresenter(T view) {
-             mView = view;
-         }
+     protected BasePresenter(T view) {
+         mView = view;
+     }
  }
  ```
  4. Contract的实现方式  
@@ -154,25 +154,25 @@ public class TasksRepository implements TasksDataSource {
  ```
  public interface BizContract {
 
-          interface View extends BaseView {
+     interface View extends BaseView {
 
-              void showLoading()；
+         void showLoading()；
 
-              void cancelLoading();
+         void cancelLoading();
 
-              void showBizInfo(String info);
+         void showBizInfo(String info);
 
-              void closeView();
+         void closeView();
+      }
+
+      abstract class Presenter extends BasePresenter<View> {
+
+          public Presenter(View view) {
+              super(view);
           }
 
-          abstract class Presenter extends BasePresenter<View> {
-
-              public Presenter(View view) {
-                  super(view);
-              }
-
-              public abstract void getBizInfo();
-          }
+          public abstract void getBizInfo();
+      }
  }
  ```  
 
@@ -182,36 +182,36 @@ public class TasksRepository implements TasksDataSource {
 * View层很清晰，很“薄”  
 改造之前，所有的业务和一些数据操作的代码都放在Activity中，这样就造成Activity特别臃肿（可以想象到），改造之后，Activity只被当做View来对待，只负责展示，这样的话，Activity就变得非常“薄”，所有涉及到的方法就只有“set”和“show”，用来操纵View展示：  
 ```
-public class BizActivity extends Activity implements BizContract.View {
+public class BizActivity extends Activity implements BizContract.View {
 
-      private BizContract.Presenter mPresenter;
+    private BizContract.Presenter mPresenter;
 
-      @Override
-      protected void onCreate(Bundle savedInstanceState){
-          super.onCreate(savedInstanceState);
-          mPresenter = new BizPresenter(this);
-          mPresenter.getBizInfo();
-      }
+    @Override
+    protected void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        mPresenter = new BizPresenter(this);
+        mPresenter.getBizInfo();
+    }
 
-      @Override
-      public void showLoading(){
+    @Override
+    public void showLoading(){
 
-      }
+    }
 
-      @Override
-      public void cancelLoading(){
+    @Override
+    public void cancelLoading(){
 
-      }
+    }
 
-      @Override
-      public void showBizInfo(String info){
+    @Override
+    public void showBizInfo(String info){
 
-      }
+    }
 
-      @Override
-      public void closeView(){
+    @Override
+    public void closeView(){
 
-      }
+    }
 }
 ```  
 * 代码更容易移植  
@@ -219,14 +219,14 @@ public class TasksRepository implements TasksDataSource {
 ```
 public class BizPresenter extends BizContract.Presenter {
 
-      public void BizPresenter(BizContract.View view){
-          super(view);
-      }
+    public void BizPresenter(BizContract.View view){
+        super(view);
+    }
 
-      @Override
-      public void getBizInfo(){
+    @Override
+    public void getBizInfo(){
 
-      }
+    }
 }
 ```  
 如上所示，业务都在Presenter，而Presenter持有的也是View的接口，所以View层可以随意的替换。
